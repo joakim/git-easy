@@ -2,7 +2,7 @@
 
 Smart git commands to make life a little bit easier.
 
-Inspired by [Legit](http://www.git-legit.org/) which in turn was inspired by [GitHub for Mac](https://mac.github.com/). Complements [git-extras](https://github.com/visionmedia/git-extras) and [gh](http://owenou.com/gh/).
+Inspired by [Legit](http://www.git-legit.org/) which in turn was inspired by [GitHub for Mac](https://mac.github.com/). Complements [git-extras](https://github.com/visionmedia/git-extras) and [gh](http://owenou.com/gh/), and works great with [GitHub Flow](https://guides.github.com/introduction/flow/index.html).
 
 ## Installation
 
