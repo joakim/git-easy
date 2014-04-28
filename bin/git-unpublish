@@ -1,0 +1,6 @@
+#!/bin/bash
+
+branch=$(branch_exists_fallback_current $1)
+test -z $branch && print "Please specify a branch to publish." && exit 1
+
+git push origin --delete $branch

@@ -1,0 +1,30 @@
+#!/bin/bash
+
+source "/usr/local/lib/gitano"
+
+stash_message="Gitano switching branches"
+branch_from=$(branch_get_current)
+branch_to=$1
+
+# Make sure the arguments and conditions are right.
+test -z $branch_from && print "Not currently on a branch" && exit 1
+test -z $branch_to && print "Please specify a branch to switch to" && exit 1
+test "$branch_to" = "$branch_from" && print "Already on '$branch_to'" && exit 1
+! branch_exists $branch_to && print "Branch '$branch_to' doesn't exist" && exit 1
+
+# Stash changes if the working directory is dirty.
+state="$(working_directory_state)"
+if test $state -ne $STATE_CLEAN; then
+  print "Saving local changes"
+  branch_stash $stash_message
+fi
+
+# Checkout the branch.
+git checkout $branch_to
+
+# Unstash if switching back to a branch that has stashed changes.
+# stash_index="$(branch_get_stash_index $branch_to $stash_message)"
+# if [ stash_index != "" ]; then
+#   print "Restoring local changes"
+#   branch_unstash $stash_index
+# fi

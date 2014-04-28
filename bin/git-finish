@@ -1,0 +1,26 @@
+#!/bin/bash
+
+source "/usr/local/lib/gitano"
+
+# Get and verify the branch name.
+if test -n "$1"; then
+  branch=feature/$1
+  ! branch_exists "$branch" && print "Branch '$branch' doesn't exist." && exit 1
+else
+  branch=$(branch_get_current)
+  [[ "$branch" != "feature/*" ]] && print "Not currently on a feature branch." && exit 1
+fi
+
+# Require a clean working directory state.
+state="$(working_directory_state)"
+((( state & STATE_STAGED )) || (( state & STATE_UNSTAGED ))) && print "You have uncommitted changes." && exit 1
+
+read -p "This will merge '$branch' into 'master' and delete '$branch'. Do you want to continue? [yN]: " -n 1 -r
+echo
+[[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
+
+# @todo If branch is published, first unpublish it (ask for confirmation).
+
+# Merge into master, creating a merge commit, then delete the feature branch.
+git checkout master
+git merge --no-ff --log $branch && git delete-branch $branch
