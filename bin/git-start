@@ -1,5 +1,8 @@
 #!/bin/bash
 
+source "/usr/local/lib/gitano"
+
 test -z $1 && print "Please specify a branch name" && exit 1
+
 branch=feature/$1
 git checkout -b $branch &> /dev/null
