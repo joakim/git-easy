@@ -18,7 +18,7 @@ stashed=$?
 # Fetch and rebase changes from the remote, then push local changes.
 # @todo More intelligently rebase and push only if necessary.
 method=$(config "gitano.syncmethod" "rebase")
-git fetch --quiet $remote && git $method --quiet $upstream && git push --quiet $remote $branch
+git fetch --quiet $remote && git $method --quiet $upstream && git push $remote $branch
 
 # If local changes were stashed, unstash them.
 test $stashed -eq 0 && branch_unstash
