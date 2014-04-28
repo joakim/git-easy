@@ -92,6 +92,8 @@ This will merge 'bug/nasty-bug' into 'master' and delete/unpublish 'bug/nasty-bu
 Branch 'bug/nasty-bug' merged into 'master' and deleted
 ```
 
+The structure of all branch related commands is always `git verb (group) branch-name`, which even of makes sense gramatically ("start the feature fun-experiment").
+
 As the last command in the example above shows, all commands except `git start` assume the current branch if none is specified.
 
 Grouping you branches makes for a tidy branch structure in both the terminal and some UI applications for Git:
