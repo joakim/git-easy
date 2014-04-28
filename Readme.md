@@ -2,7 +2,8 @@
 
 Smart git commands to make life a little bit easier.
 
-Inspired by [Legit](http://www.git-legit.org/) which in turn was inspired by [GitHub for Mac](https://mac.github.com/). Complements [git-extras](https://github.com/visionmedia/git-extras) and [gh](http://owenou.com/gh/), and works great with [the GitHub Flow](https://guides.github.com/introduction/flow/index.html).
+Inspired by [Legit](http://www.git-legit.org/) which in turn was inspired by [GitHub for Mac](https://mac.github.com/). Works great with [the GitHub Flow](https://guides.github.com/introduction/flow/index.html) and complements [git-extras](https://github.com/visionmedia/git-extras) and [gh](http://owenou.com/gh/).
+
 
 ## Installation
 
@@ -17,6 +18,7 @@ One-liner:
 ```bash
 $ (cd /tmp && git clone --depth 1 https://github.com/joakim/gitano.git && cd gitano && sudo make install)
 ```
+
 
 ## Commands
 
@@ -35,7 +37,7 @@ $ git switch feature fancy-stuff
 
 ### git sync
 
-Syncronizes the current branch. Stashes any local changes, fetches and rebases remote changes, and unstashes. Prevents merge bubbles. If you [do like bubbles](https://blog.glyphobet.net/essay/2504), see [Configuration](#configuration) for how to use normal merging.
+Synchronizes the current branch. Stashes any local changes, fetches and rebases remote changes, and unstashes. Prevents merge bubbles by default. If you [do like bubbles](https://www.youtube.com/watch?v=ludEngkwMu8), see [Configuration](#configuration) for how to use normal merging.
 
 ```bash
 $ git sync
@@ -80,7 +82,7 @@ $ git unpublish feature fancy-stuff
 
 ## Tricks
 
-Wherever `branch` is an argument, one can either specify a direct branch name, e.g. `fancy-branch`. Or one can specify a branch within a group as two arguments, e.g. `features new-stuff` resulting in the branch `features/new-stuff`. This feels just as nice as the number of milliseconds saved when typing the command – try it!
+Wherever `branch` is an argument, one can either specify a direct branch name, e.g. `fancy-branch`. Or one can specify a branch within a group as two arguments, e.g. `feature new-stuff` resulting in the branch `feature/new-stuff`. This feels just as nice as the number of milliseconds saved when typing the command – try it!
 
 ```bash
 $ git start feature fun-experiment
@@ -94,16 +96,16 @@ Branch 'bug/nasty-bug' merged into 'master' and deleted
 
 The structure of all branch related commands is always `git verb (group) branch-name`, which even makes grammatical sense ("start the feature fun-experiment").
 
-As the last command in the example above shows, all commands except `git start` assume the current branch if none is specified.
-
-Grouping you branches makes for a tidy branch structure in both the terminal and some UI applications for Git:
+Grouping you branches also makes for a tidy branch structure in both the terminal and certain UI applications:
 
 ![Branches displayed as a directory structure](https://s3.amazonaws.com/f.cl.ly/items/1037020o2r322P320c1Z/Image%202014-04-28%20at%2011.44.38%20PM.png)
+
+As the last command in the example above shows, all commands taking `branch` as an argument (except `git start`) assume the current branch if none is specified.
 
 
 ## Configuration
 
-Configuration values may be set using the `git config` command, e.g. `git config gitano.mainline "production"`.
+Configuration values are set using the `git config` command, e.g. `git config gitano.mainline "production"`.
 
 ### gitano.mainline
 
