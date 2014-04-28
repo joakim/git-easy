@@ -33,6 +33,14 @@ $ git switch my-branch
 $ git switch feature fancy-stuff
 ```
 
+### git sync
+
+Syncronizes the current branch. Stashes any local changes, fetches and rebases remote changes, and unstashes. Prevents merge bubbles. If you [do like bubbles](https://blog.glyphobet.net/essay/2504), see [Configuration](#configuration) for how to use normal merging.
+
+```bash
+$ git sync
+```
+
 ### git start [branch]
 
 Creates a new branch off of the current branch and switches to it.
@@ -44,19 +52,11 @@ $ git start feature fancy-stuff
 
 ### git finish [branch]
 
-Merges a branch into the mainline (`master` by default) and deletes/unpublishes it. Asks for confirmation before doing so. It creates a merge bubble by default, which can be changed to a rebase using `git config gitano.finishmethod "rebase"`.
+Merges a branch into the mainline (`master` by default) and deletes/unpublishes it. Asks for confirmation before doing so. It creates a merge bubble by default, see [Configuration](#configuration) for how to use a rebase instead.
 
 ```bash
 $ git finish my-branch
 $ git finish feature fancy-stuff
-```
-
-### git sync
-
-Syncronizes the current branch. Stashes any local changes, fetches and rebases remote changes, and unstashes. Prevents merge bubbles. If you [do like bubbles](https://blog.glyphobet.net/essay/2504), change to normal merge using `git config gitano.syncmethod "merge"`.
-
-```bash
-$ git sync
 ```
 
 ### git publish [branch]
@@ -84,11 +84,15 @@ Wherever `branch` is an argument, one can either specify a direct branch name, e
 
 ```bash
 $ git start feature fun-experiment
+Switched to a new branch 'feature/fun-experiment'
 $ git switch bug nasty-bug
+Switched to branch 'bug/nasty-bug'
 $ git finish
+This will merge 'bug/nasty-bug' into 'master' and delete/unpublish 'bug/nasty-bug'. Do you want to do this (y/n)? y
+Branch 'bug/nasty-bug' merged into 'master' and deleted
 ```
 
-As the last example shows, all commands except `git start` assume the current branch if none is specified, in this case the branch `bug/nasty-bug` would be finished off.
+As the last command in the example above shows, all commands except `git start` assume the current branch if none is specified.
 
 Grouping you branches makes for a tidy branch structure in both the terminal and some UI applications for Git:
 
