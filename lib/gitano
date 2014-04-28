@@ -1,0 +1,91 @@
+#!/bin/bash
+
+print () {
+  echo "$1" 1>&2
+}
+
+# Working directory states.
+readonly STATE_CLEAN=0
+readonly STATE_STAGED=1
+readonly STATE_UNSTAGED=2
+readonly STATE_UNTRACKED=4
+
+# Gets the current states of the working directory.
+#
+# Outputs a return code that is a bitwise OR of all applicable states:
+# 0 = squeaky clean
+# 1 = dirty, staged changes
+# 2 = dirty, unstaged changes
+# 4 = dirty, untracked files
+#
+# To check for a state, use bitwise AND, eg. (( state & STATE_STAGED )),
+# or check the decimal value, eg. 4 for only untracked files.
+#
+# Kudos: http://stackoverflow.com/a/2659808
+working_directory_state () {
+  local staged_state=$STATE_CLEAN
+  local unstaged_state=$STATE_CLEAN
+  local untracked_state=$STATE_CLEAN
+  local state
+
+  # Refresh the index to ensure it's up to date.
+  git update-index -q --refresh
+
+  # Check for staged changes (to be committed).
+  git diff-index --quiet --cached HEAD || staged_state=$STATE_STAGED
+
+  # Check for unstaged changes (not staged for commit).
+  git diff-files --quiet || unstaged_state=$STATE_UNSTAGED
+
+  # Check for untracked files.
+  test -z "$(git ls-files --others --exclude-standard)" || untracked_state=$STATE_UNTRACKED
+
+  # Return the combined bit values of all the applicable states.
+  state=$(( staged_state | unstaged_state | untracked_state ))
+  echo "$state"
+}
+
+# Returns whether a branch exists locally.
+branch_exists () {
+  git show-ref --quiet --verify -- "refs/heads/$1"
+}
+
+# Outputs the current branch, an empty string if not currently on a branch.
+branch_get_current () {
+  local branch
+  branch=$(git symbolic-ref --quiet --short HEAD) || branch=
+  echo "$branch"
+}
+
+# Checks if a branch exists, falls back to the current branch if not.
+branch_exists_fallback_current () {
+  if branch_exists "$1"; then
+    echo "$1"
+  else
+    branch=$(branch_get_current)
+    echo "$branch"
+  fi
+}
+
+# Stashes changes to the current branch.
+branch_stash () {
+  local message=$1
+  git stash save --quiet --include-untracked $message
+}
+
+# Unstashes changes for the current branch.
+branch_unstash () {
+  local index=$1
+  git stash pop --quiet stash@{$index}
+}
+
+# Outputs the stash index for the branch's stashed changes.
+branch_get_stash_index () {
+  local branch=$1
+  local message=$2
+  local index=""
+
+  # @todo Find the stash index for the branch and message.
+  index="0"
+  echo $index
+}
