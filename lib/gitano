@@ -1,7 +1,14 @@
 #!/bin/bash
 
 print () {
-  echo "$1" 1>&2
+  echo "$1"
+}
+
+# Outputs a Git configuration value, or an optional fallback if not set.
+config () {
+  local value=
+  value=$(git config "$1") || value="$2"
+  echo "$value"
 }
 
 # Working directory states.
@@ -10,7 +17,7 @@ readonly STATE_STAGED=1
 readonly STATE_UNSTAGED=2
 readonly STATE_UNTRACKED=4
 
-# Gets the current states of the working directory.
+# Returns the current states of the working directory.
 #
 # Outputs a return code that is a bitwise OR of all applicable states:
 # 0 = squeaky clean
@@ -18,15 +25,15 @@ readonly STATE_UNTRACKED=4
 # 2 = dirty, unstaged changes
 # 4 = dirty, untracked files
 #
-# To check for a state, use bitwise AND, eg. (( state & STATE_STAGED )),
-# or check the decimal value, eg. 4 for only untracked files.
+# To check if the result _includes_ a certain state, use bitwise AND, eg.
+# (( state & STATE_UNTRACKED )).
 #
 # Kudos: http://stackoverflow.com/a/2659808
-working_directory_state () {
+working_directory_get_state () {
   local staged_state=$STATE_CLEAN
   local unstaged_state=$STATE_CLEAN
   local untracked_state=$STATE_CLEAN
-  local state
+  local state=
 
   # Refresh the index to ensure it's up to date.
   git update-index -q --refresh
@@ -42,7 +49,60 @@ working_directory_state () {
 
   # Return the combined bit values of all the applicable states.
   state=$(( staged_state | unstaged_state | untracked_state ))
-  echo "$state"
+  return $state
+}
+
+# Outputs the current branch name, an empty string if not currently on a branch.
+branch_get_current () {
+  local branch=
+  branch=$(git symbolic-ref --quiet --short HEAD) || branch=
+  echo "$branch"
+}
+
+# Outputs the name of a branch's remote. Defaults to origin.
+branch_get_remote () {
+  local branch="$1"
+  local remote=$(config "branch.$branch.remote" "origin")
+  echo "$remote"
+}
+
+# Returns the upstream name of the current branch.
+branch_get_upstream () {
+  local upstream=
+  upstream=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null)
+  echo "$upstream"
+}
+
+# Outputs the name of the branch, including its group if one is specified.
+branch_get_name () {
+  local group="$1"
+  local name="$2"
+
+  if test -z "$name"; then
+    name="$group"
+    group=
+  fi
+
+  if test -n "$group"; then
+    echo "$group/$name"
+  else
+    echo "$name"
+  fi
+}
+
+# Returns a branch name. If a name is specified and it exists, it is returned.
+# If no name is specified, return the current branch (empty if not on a branch).
+branch_get_name_or_current () {
+  local branch=
+
+  if test -n "$1"; then
+    branch=$(branch_get_name $1 $2)
+    branch_exists $branch || branch=
+  else
+    branch=$(branch_get_current)
+  fi
+
+  echo "$branch"
 }
 
 # Returns whether a branch exists locally.
@@ -50,42 +110,38 @@ branch_exists () {
   git show-ref --quiet --verify -- "refs/heads/$1"
 }
 
-# Outputs the current branch, an empty string if not currently on a branch.
-branch_get_current () {
-  local branch
-  branch=$(git symbolic-ref --quiet --short HEAD) || branch=
-  echo "$branch"
-}
+# Stashes changes to the current branch if the working directory is dirty.
+branch_stash_if_dirty () {
+  local stash_message="$1"
 
-# Checks if a branch exists, falls back to the current branch if not.
-branch_exists_fallback_current () {
-  if branch_exists "$1"; then
-    echo "$1"
+  working_directory_get_state
+  local state=$?
+
+  if test $state -ne $STATE_CLEAN; then
+    branch_stash "$stash_message"
   else
-    branch=$(branch_get_current)
-    echo "$branch"
+    return 1
   fi
 }
 
-# Stashes changes to the current branch.
+# Stashes changes for the current branch.
 branch_stash () {
-  local message=$1
-  git stash save --quiet --include-untracked $message
+  local message="$1"
+  print "Saving local changes"
+  git stash save --quiet --include-untracked "$message"
 }
 
-# Unstashes changes for the current branch.
+# Unstashes changes for the current branch. If an index is specified, use that.
 branch_unstash () {
-  local index=$1
-  git stash pop --quiet stash@{$index}
+  local index="$1"
+  print "Restoring local changes"
+  git stash pop --quiet $index
 }
 
-# Outputs the stash index for the branch's stashed changes.
+# Outputs the stash index for the specified branch's stashed changes.
 branch_get_stash_index () {
-  local branch=$1
-  local message=$2
-  local index=""
-
-  # @todo Find the stash index for the branch and message.
-  index="0"
-  echo $index
+  local branch="$1"
+  local message="$2"
+  local index=$(git stash list | grep "On $branch: $message" | cut -d : -f 1 | head -n 1)
+  echo "$index"
 }

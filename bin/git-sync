@@ -2,32 +2,23 @@
 
 source "/usr/local/lib/gitano"
 
-stash_message="Gitano syncing"
 branch=$(branch_get_current)
+remote=$(branch_get_remote $branch)
+upstream=$(branch_get_upstream)
 
 # Make sure the arguments and conditions are right.
-test -z $branch && print "Not currently on a branch" && exit 1
-
-# Check if the branch has been published.
+test -z "$branch" && print "Not currently on a branch" && exit 1
+test -z "$upstream" && print "Branch is not published" && exit 1
+test -z "$remote" && print "Branch doesn't have a remote" && exit 1
 
 # Stash changes if the working directory is dirty.
-state="$(working_directory_state)"
-if test $state -ne $STATE_CLEAN; then
-  print "Saving local changes"
-  branch_stash $stash_message
-  stashed=true
-fi
+branch_stash_if_dirty "Gitano syncing"
+stashed=$?
 
 # Fetch and rebase changes from the remote, then push local changes.
-git fetch origin && git rebase origin/$branch && git push origin $branch
+# @todo More intelligently rebase and push only if necessary.
+method=$(config "gitano.syncmethod" "rebase")
+git fetch --quiet $remote && git $method --quiet $upstream && git push --quiet $remote $branch
 
 # If local changes were stashed, unstash them.
-if test -n stashed; then
-  git stash pop
-  # @todo Safer unstash?
-  # stash_index="$(branch_get_stash_index $branch_to $stash_message)"
-  # if [ stash_index != "" ]; then
-  #   print "Restoring local changes"
-  #   branch_unstash $stash_index
-  # fi
-fi
+test $stashed -eq 0 && branch_unstash

@@ -2,7 +2,10 @@
 
 source "/usr/local/lib/gitano"
 
-branch=$(branch_exists_fallback_current $1)
-test -z $branch && print "Please specify a branch to publish." && exit 1
+branch=$(branch_get_name_or_current $1 $2)
+remote=$(branch_get_remote $branch)
 
-git push -u origin $branch
+# Make sure the arguments and conditions are right.
+! branch_exists $branch && print "Branch '$branch' doesn't exist" && exit 1
+
+git push -u $remote $branch

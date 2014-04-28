@@ -2,25 +2,27 @@
 
 source "/usr/local/lib/gitano"
 
-# Get and verify the branch name.
-if test -n "$1"; then
-  branch=feature/$1
-  ! branch_exists "$branch" && print "Branch '$branch' doesn't exist." && exit 1
-else
-  branch=$(branch_get_current)
-  [[ "$branch" != "feature/*" ]] && print "Not currently on a feature branch." && exit 1
-fi
+branch=$(branch_get_name_or_current $1 $2)
+mainline=$(config "gitano.mainline" "master")
+
+# Make sure the arguments and conditions are right.
+! branch_exists $branch && print "Branch '$branch' doesn't exist" && exit 1
+test "$branch" = "$mainline" && print "Finishing off '$mainline' would cause the repository to implode!" && exit 1
 
 # Require a clean working directory state.
-state="$(working_directory_state)"
-((( state & STATE_STAGED )) || (( state & STATE_UNSTAGED ))) && print "You have uncommitted changes." && exit 1
+state="$(working_directory_get_state)"
+((( state & STATE_STAGED )) || (( state & STATE_UNSTAGED ))) && print "You have uncommitted changes" && exit 1
 
-read -p "This will merge '$branch' into 'master' and delete '$branch'. Do you want to continue? [yN]: " -n 1 -r
-echo
+# Ask for confirmation.
+read -p "This will merge '$branch' into '$mainline' and delete/unpublish '$branch'. Do you want to do this (y/n)? " -n 1 -r; echo
 [[ ! $REPLY =~ ^[Yy]$ ]] && exit 1
 
-# @todo If branch is published, first unpublish it (ask for confirmation).
+# If the branch is published, unpublish it.
+upstream=$(branch_get_upstream)
+if test -n "$upstream"; then
+  git push --quiet $remote --delete $branch
+fi
 
-# Merge into master, creating a merge commit, then delete the feature branch.
-git checkout master
-git merge --no-ff --log $branch && git delete-branch $branch
+# Merge branch into mainline, then delete the branch.
+method=$(config "gitano.finishmethod" "merge")
+git checkout --quiet $mainline && git $method --quiet --no-ff --log $branch && git branch --quiet -D $branch && print "Branch '$branch' merged into '$mainline' and deleted"

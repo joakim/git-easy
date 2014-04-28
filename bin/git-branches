@@ -1,4 +1,4 @@
 #!/bin/bash
 
-# @todo Mark local branches with remotes and remotes without local branches.
+# @todo Flag local branches with remotes and remotes without local branches.
 git branch --list --color

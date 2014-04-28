@@ -2,7 +2,12 @@
 
 source "/usr/local/lib/gitano"
 
-branch=$(branch_exists_fallback_current $1)
-test -z $branch && print "Please specify a branch to unpublish." && exit 1
+branch=$(branch_get_name_or_current $1 $2)
+remote=$(branch_get_remote $branch)
+upstream=$(branch_get_upstream)
 
-git push origin --delete $branch
+# Make sure the arguments and conditions are right.
+! branch_exists $branch && print "Branch '$branch' doesn't exist" && exit 1
+test -z "$upstream" && print "Branch is not published" && exit 1
+
+git push $remote --delete $branch

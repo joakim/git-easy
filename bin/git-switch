@@ -2,29 +2,22 @@
 
 source "/usr/local/lib/gitano"
 
-stash_message="Gitano switching branches"
 branch_from=$(branch_get_current)
-branch_to=$1
+branch_to=$(branch_get_name $1 $2)
 
 # Make sure the arguments and conditions are right.
-test -z $branch_from && print "Not currently on a branch" && exit 1
-test -z $branch_to && print "Please specify a branch to switch to" && exit 1
+test -z "$branch_from" && print "Not currently on a branch, try 'git checkout $branch_to'instead" && exit 1
+test -z "$1" && print "Please specify a branch to switch to" && exit 1
 test "$branch_to" = "$branch_from" && print "Already on '$branch_to'" && exit 1
 ! branch_exists $branch_to && print "Branch '$branch_to' doesn't exist" && exit 1
 
 # Stash changes if the working directory is dirty.
-state="$(working_directory_state)"
-if test $state -ne $STATE_CLEAN; then
-  print "Saving local changes"
-  branch_stash $stash_message
-fi
+stash_message="Gitano switching branches"
+branch_stash_if_dirty "$stash_message"
 
-# Checkout the branch.
-git checkout $branch_to
+# Checkout the branch the user is switching to.
+git checkout $branch_to 2>&1 >/dev/null
 
 # Unstash if switching back to a branch that has stashed changes.
-# stash_index="$(branch_get_stash_index $branch_to $stash_message)"
-# if [ stash_index != "" ]; then
-#   print "Restoring local changes"
-#   branch_unstash $stash_index
-# fi
+stash_index=$(branch_get_stash_index $branch_to $stash_message)
+test -n "$stash_index" && branch_unstash $stash_index

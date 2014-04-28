@@ -2,7 +2,8 @@
 
 source "/usr/local/lib/gitano"
 
-test -z $1 && print "Please specify a branch name" && exit 1
+# Make sure the arguments and conditions are right.
+test -z "$1" && print "Please specify a branch name" && exit 1
 
-branch=feature/$1
-git checkout -b $branch &> /dev/null
+branch=$(branch_get_name $1 $2)
+git checkout -b $branch 2>&1 >/dev/null
