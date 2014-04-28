@@ -15,7 +15,7 @@ $ make install
 One-liner:
 
 ```bash
-$ (cd /tmp && git clone --depth 1 https://github.com/visionmedia/git-extras.git && cd git-extras && sudo make install)
+$ (cd /tmp && git clone --depth 1 https://github.com/joakim/gitano.git && cd gitano && sudo make install)
 ```
 
 ## Commands
